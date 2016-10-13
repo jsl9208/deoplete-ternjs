@@ -31,6 +31,10 @@ logger = getLogger(__name__)
 windows = platform.system() == "Windows"
 
 
+
+def remove_async_await(text):
+    return re.sub(r"(\s|^)(async|await)\s", "\\1", text)
+
 class RequestError(Exception):
 
     def __init__(self, message):
@@ -64,6 +68,9 @@ class Source(Base):
         self._tern_first_request = False
         self._tern_last_length = 0
         self._trying_to_start = False
+        self._remove_async_await = False
+        if vim.eval('exists("g:tern_remove_async_await")'):
+            self._remove_async_await = vim.eval('g:tern_remove_async_await') != '0'
 
         if vim.eval('exists("g:tern_request_timeout")'):
             self._tern_timeout = float(vim.eval("g:tern_request_timeout"))
@@ -233,6 +240,8 @@ class Source(Base):
     def full_buffer(self):
         text = self.buffer_slice(self.vim.current.buffer, 0,
                                  len(self.vim.current.buffer))
+        if self._remove_async_await:
+            text = remove_async_await(text)
         return {"type": "full",
                 "name": self.relative_file(),
                 "text": text}
@@ -242,6 +251,8 @@ class Source(Base):
         while pos < end:
             text += buf[pos] + "\n"
             pos += 1
+        if self._remove_async_await:
+            text = remove_async_await(text)
         return text
 
     def relative_file(self):
