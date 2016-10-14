@@ -33,7 +33,7 @@ windows = platform.system() == "Windows"
 
 
 def remove_async_await(text):
-    return re.sub(r"([^\w])(async|await)([^\w])", "\\1\\3", text)
+    return re.sub(r"([^\w])(async|await)([^\w])", "\\1     \\3", text)
 
 class RequestError(Exception):
 
